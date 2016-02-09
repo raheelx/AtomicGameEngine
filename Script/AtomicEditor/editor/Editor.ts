@@ -11,6 +11,7 @@ import PlayMode = require("ui/playmode/PlayMode");
 import EditorLicense = require("./EditorLicense");
 import EditorEvents = require("./EditorEvents");
 import Preferences = require("./Preferences");
+import ProgressModal = require("../ui/modal/ProgressModal");
 
 class Editor extends Atomic.ScriptObject {
 
@@ -22,6 +23,8 @@ class Editor extends Atomic.ScriptObject {
 
     projectCloseRequested: boolean;
     exitRequested: boolean;
+
+    progressModal: ProgressModal;
 
     constructor() {
 
@@ -45,6 +48,8 @@ class Editor extends Atomic.ScriptObject {
         this.playMode = new PlayMode();
 
         Atomic.getResourceCache().autoReloadResources = true;
+
+        this.progressModal = new ProgressModal("Opening Project", "Project opening, please wait...");
 
         this.subscribeToEvent(EditorEvents.LoadProject, (data) => this.handleEditorLoadProject(data));
         this.subscribeToEvent(EditorEvents.CloseProject, (data) => this.handleEditorCloseProject(data));
@@ -75,6 +80,7 @@ class Editor extends Atomic.ScriptObject {
         this.subscribeToEvent("ProjectLoaded", (data) => {
             Atomic.graphics.windowTitle = "AtomicEditor - " + data.projectPath;
             Preferences.getInstance().registerRecentProject(data.projectPath);
+            this.progressModal.hide();
         });
 
         this.subscribeToEvent("EditorResourceCloseCanceled", (data) => {
@@ -134,6 +140,8 @@ class Editor extends Atomic.ScriptObject {
             return false;
 
         }
+
+        this.progressModal.show();
         return system.loadProject(event.path);
     }
 
@@ -212,6 +220,8 @@ class Editor extends Atomic.ScriptObject {
         EditorUI.shutdown();
         Atomic.getEngine().exit();
     }
+
+   
 
 
 }
